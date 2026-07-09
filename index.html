@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Image URL Generator</title>
+  <link rel="manifest" href="/manifest.webmanifest" />
+  <meta name="theme-color" content="#090909" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Image URL" />
+  <link rel="apple-touch-icon" href="/icons/icon-192.png" />
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Inter, Arial, sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(255, 152, 0, 0.2), transparent 30%),
+        radial-gradient(circle at bottom right, rgba(0, 255, 200, 0.12), transparent 30%),
+        #090909;
+      color: #ffffff;
+      padding: 22px;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 880px;
+      margin: 0 auto;
+    }
+
+    .hero {
+      margin: 20px 0 20px;
+    }
+
+    .badge {
+      display: inline-flex;
+      padding: 8px 12px;
+      border: 1px solid rgba(255,255,255,0.14);
+      border-radius: 999px;
+      color: #cfcfcf;
+      background: rgba(255,255,255,0.06);
+      font-size: 13px;
+      margin-bottom: 14px;
+    }
+
+    h1 {
+      font-size: clamp(32px, 7vw, 64px);
+      line-height: 0.96;
+      margin: 0;
+      letter-spacing: -2px;
+    }
+
+    .subtitle {
+      color: #b8b8b8;
+      font-size: 16px;
+      line-height: 1.6;
+      max-width: 660px;
+      margin: 16px 0 0;
+    }
+
+    .panel {
+      background: rgba(20,20,20,0.9);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 24px;
+      padding: 22px;
+      box-shadow: 0 20px 70px rgba(0,0,0,0.45);
+      backdrop-filter: blur(14px);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 14px;
+    }
+
+    label {
+      display: block;
+      font-size: 13px;
+      color: #d5d5d5;
+      margin-bottom: 8px;
+    }
+
+    input {
+      width: 100%;
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 14px;
+      background: #0e0e0e;
+      color: white;
+      padding: 14px;
+      outline: none;
+      font-size: 15px;
+    }
+
+    input:focus {
+      border-color: #ff9800;
+    }
+
+    button {
+      width: 100%;
+      border: none;
+      border-radius: 14px;
+      padding: 15px;
+      background: linear-gradient(135deg, #ffb13b, #ff7a00);
+      color: #111;
+      font-weight: 800;
+      font-size: 15px;
+      cursor: pointer;
+      transition: transform 0.18s ease, opacity 0.18s ease;
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+    }
+
+    button:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .secondary-btn {
+      background: rgba(255,255,255,0.1);
+      color: white;
+      border: 1px solid rgba(255,255,255,0.12);
+    }
+
+    .danger-btn {
+      background: rgba(255, 78, 78, 0.18);
+      color: #ffb1b1;
+      border: 1px solid rgba(255, 78, 78, 0.3);
+    }
+
+    .result {
+      display: none;
+      margin-top: 16px;
+      padding: 16px;
+      border-radius: 16px;
+      background: #0b0b0b;
+      border: 1px solid rgba(255,255,255,0.1);
+      word-break: break-all;
+    }
+
+    .result a {
+      color: #00ffd0;
+    }
+
+    .preview {
+      display: none;
+      margin-top: 16px;
+      width: 100%;
+      max-height: 420px;
+      object-fit: contain;
+      border-radius: 18px;
+      background: #050505;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .tiny {
+      color: #8f8f8f;
+      font-size: 12px;
+      margin-top: 8px;
+    }
+
+    .library-title {
+      margin: 28px 0 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .library-title h2 {
+      margin: 0;
+      font-size: 22px;
+    }
+
+    .images {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+      gap: 14px;
+    }
+
+    .card {
+      background: rgba(20,20,20,0.82);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 18px;
+      overflow: hidden;
+    }
+
+    .card img {
+      width: 100%;
+      height: 150px;
+      object-fit: cover;
+      background: #050505;
+      display: block;
+    }
+
+    .card-body {
+      padding: 12px;
+    }
+
+    .name {
+      font-size: 13px;
+      color: #e8e8e8;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-bottom: 10px;
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .row button {
+      padding: 10px;
+      font-size: 12px;
+    }
+
+
+.install-box {
+  margin-top: 18px;
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.install-btn {
+  width: auto;
+  min-width: 160px;
+  background: rgba(0, 255, 208, 0.12);
+  color: #dffff8;
+  border: 1px solid rgba(0, 255, 208, 0.35);
+}
+
+.install-note {
+  color: #a7a7a7;
+  font-size: 13px;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.install-help {
+  display: none;
+  margin-top: 12px;
+  color: #d6d6d6;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 14px;
+  padding: 12px;
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+    @media (min-width: 720px) {
+      .grid {
+        grid-template-columns: 1.2fr 0.8fr;
+        align-items: end;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="container">
+    <section class="hero">
+      <div class="badge">Render + PostgreSQL Image URL Generator</div>
+      <h1>Upload image.<br>Get public URL.</h1>
+      <p class="subtitle">
+        This website stores your image inside the PostgreSQL database and creates a public URL that you can use in your website, poster, or HTML image tag.
+      </p>
+
+      <div class="install-box">
+        <button id="installBtn" class="install-btn" type="button">Download App</button>
+        <p id="installNote" class="install-note">Add this website to your phone home screen like an app.</p>
+      </div>
+      <div id="installHelp" class="install-help"></div>
+    </section>
+
+    <section class="panel">
+      <div class="grid">
+        <div>
+          <label for="imageInput">Choose image</label>
+          <input type="file" id="imageInput" accept="image/jpeg,image/png,image/webp,image/gif,image/svg+xml" />
+          <div class="tiny">Allowed: JPG, PNG, WEBP, GIF, SVG. Default max: 5MB.</div>
+        </div>
+
+        <div>
+          <label for="uploadKey">Upload password</label>
+          <input type="password" id="uploadKey" placeholder="Enter UPLOAD_KEY" autocomplete="current-password" />
+        </div>
+      </div>
+
+      <div style="margin-top: 14px;">
+        <button id="uploadBtn" onclick="uploadImage()">Upload Image</button>
+      </div>
+
+      <div id="result" class="result"></div>
+      <img id="preview" class="preview" alt="Uploaded image preview" />
+    </section>
+
+    <section class="library-title">
+      <h2>Recent Images</h2>
+      <button class="secondary-btn" style="max-width: 170px;" onclick="loadImages()">Refresh</button>
+    </section>
+
+    <section id="images" class="images"></section>
+  </main>
+
+  <script>
+    const imageInput = document.getElementById("imageInput");
+    const uploadKey = document.getElementById("uploadKey");
+    const uploadBtn = document.getElementById("uploadBtn");
+    const resultBox = document.getElementById("result");
+    const preview = document.getElementById("preview");
+    const imagesBox = document.getElementById("images");
+    const installBtn = document.getElementById("installBtn");
+    const installNote = document.getElementById("installNote");
+    const installHelp = document.getElementById("installHelp");
+    let deferredInstallPrompt = null;
+
+    const savedKey = localStorage.getItem("uploadKey");
+    if (savedKey) uploadKey.value = savedKey;
+
+    uploadKey.addEventListener("input", () => {
+      localStorage.setItem("uploadKey", uploadKey.value);
+    });
+
+    function isRunningAsInstalledApp() {
+      return window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
+    }
+
+    function updateInstallUi() {
+      if (isRunningAsInstalledApp()) {
+        installBtn.style.display = "none";
+        installNote.textContent = "App is already added to your home screen.";
+        return;
+      }
+
+      installBtn.style.display = "inline-flex";
+    }
+
+    window.addEventListener("beforeinstallprompt", (event) => {
+      event.preventDefault();
+      deferredInstallPrompt = event;
+      installBtn.textContent = "Download App";
+      installNote.textContent = "Tap Download App to add this website to your home screen.";
+      updateInstallUi();
+    });
+
+    installBtn.addEventListener("click", async () => {
+      installHelp.style.display = "none";
+
+      if (deferredInstallPrompt) {
+        deferredInstallPrompt.prompt();
+        await deferredInstallPrompt.userChoice;
+        deferredInstallPrompt = null;
+        updateInstallUi();
+        return;
+      }
+
+      const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+      const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+
+      if (isIOS || isSafari) {
+        installHelp.style.display = "block";
+        installHelp.innerHTML = "On iPhone/iPad: open this website in Safari, tap <strong>Share</strong>, then tap <strong>Add to Home Screen</strong>.";
+      } else {
+        installHelp.style.display = "block";
+        installHelp.innerHTML = "Open this website in Chrome/Edge, then use browser menu → <strong>Add to Home screen</strong> or <strong>Install app</strong>.";
+      }
+    });
+
+    window.addEventListener("appinstalled", () => {
+      installNote.textContent = "App installed successfully.";
+      installBtn.style.display = "none";
+      installHelp.style.display = "none";
+    });
+
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker.register("/service-worker.js").catch(() => {});
+      });
+    }
+
+    updateInstallUi();
+
+    function showResult(html) {
+      resultBox.style.display = "block";
+      resultBox.innerHTML = html;
+    }
+
+    function escapeHtml(text) {
+      return String(text)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    async function uploadImage() {
+      if (!imageInput.files[0]) {
+        showResult("Please select an image first.");
+        return;
+      }
+
+      if (!uploadKey.value.trim()) {
+        showResult("Please enter your upload password.");
+        return;
+      }
+
+      uploadBtn.disabled = true;
+      uploadBtn.textContent = "Uploading...";
+      showResult("Uploading image...");
+
+      const formData = new FormData();
+      formData.append("image", imageInput.files[0]);
+
+      try {
+        const response = await fetch("/api/upload", {
+          method: "POST",
+          headers: {
+            "x-upload-key": uploadKey.value.trim()
+          },
+          body: formData
+        });
+
+        const data = await response.json();
+
+        if (!response.ok || !data.success) {
+          throw new Error(data.message || "Upload failed.");
+        }
+
+        const image = data.image;
+
+        showResult(`
+          <strong>Image URL:</strong><br>
+          <a href="${image.url}" target="_blank" rel="noopener noreferrer">${image.url}</a>
+          <br><br>
+          <button class="secondary-btn" onclick="copyText('${image.url}')">Copy URL</button>
+          <br><br>
+          <strong>HTML:</strong><br>
+          <code>&lt;img src=&quot;${image.url}&quot; alt=&quot;image&quot;&gt;</code>
+          <br><br>
+          <button class="secondary-btn" onclick="copyText('&lt;img src=&quot;${image.url}&quot; alt=&quot;image&quot;&gt;')">Copy HTML</button>
+        `);
+
+        preview.src = image.url;
+        preview.style.display = "block";
+        imageInput.value = "";
+        loadImages();
+      } catch (error) {
+        showResult(escapeHtml(error.message));
+      } finally {
+        uploadBtn.disabled = false;
+        uploadBtn.textContent = "Upload Image";
+      }
+    }
+
+    async function loadImages() {
+      if (!uploadKey.value.trim()) {
+        imagesBox.innerHTML = `<p class="tiny">Enter upload password, then click Refresh.</p>`;
+        return;
+      }
+
+      imagesBox.innerHTML = `<p class="tiny">Loading images...</p>`;
+
+      try {
+        const response = await fetch("/api/images", {
+          headers: {
+            "x-upload-key": uploadKey.value.trim()
+          }
+        });
+
+        const data = await response.json();
+
+        if (!response.ok || !data.success) {
+          throw new Error(data.message || "Could not load images.");
+        }
+
+        if (!data.images.length) {
+          imagesBox.innerHTML = `<p class="tiny">No images uploaded yet.</p>`;
+          return;
+        }
+
+        imagesBox.innerHTML = data.images.map((image) => `
+          <article class="card">
+            <img src="${image.url}" alt="${escapeHtml(image.name)}" loading="lazy">
+            <div class="card-body">
+              <div class="name" title="${escapeHtml(image.name)}">${escapeHtml(image.name)}</div>
+              <div class="row">
+                <button class="secondary-btn" onclick="copyText('${image.url}')">Copy URL</button>
+                <button class="danger-btn" onclick="deleteImage('${image.id}')">Delete</button>
+              </div>
+            </div>
+          </article>
+        `).join("");
+      } catch (error) {
+        imagesBox.innerHTML = `<p class="tiny">${escapeHtml(error.message)}</p>`;
+      }
+    }
+
+    async function deleteImage(id) {
+      const ok = confirm("Delete this image permanently?");
+      if (!ok) return;
+
+      try {
+        const response = await fetch(`/api/images/${id}`, {
+          method: "DELETE",
+          headers: {
+            "x-upload-key": uploadKey.value.trim()
+          }
+        });
+
+        const data = await response.json();
+
+        if (!response.ok || !data.success) {
+          throw new Error(data.message || "Delete failed.");
+        }
+
+        loadImages();
+      } catch (error) {
+        alert(error.message);
+      }
+    }
+
+    async function copyText(text) {
+      await navigator.clipboard.writeText(text);
+      alert("Copied!");
+    }
+
+    loadImages();
+  </script>
+</body>
+</html>
