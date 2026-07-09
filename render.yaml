@@ -1,0 +1,24 @@
+# Optional Render Blueprint.
+# You can also deploy manually from the Render dashboard.
+# Manual deployment is recommended if Render plan names have changed.
+
+services:
+  - type: web
+    name: image-url-database
+    env: node
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: MAX_FILE_SIZE_MB
+        value: 5
+      - key: UPLOAD_KEY
+        generateValue: true
+      - key: DATABASE_URL
+        fromDatabase:
+          name: image-url-db
+          property: connectionString
+
+databases:
+  - name: image-url-db
